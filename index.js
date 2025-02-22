@@ -71,15 +71,29 @@ async function run() {
             }
         });
 
-        // 📌 3️⃣ Get All Tasks
+        // API Route to get tasks by user email
         app.get("/tasks", async (req, res) => {
             try {
-                const tasks = await tasksCollection.find().toArray();
+                const { email } = req.query; // Get email from query string
+                if (!email) {
+                    return res.status(400).json({ error: "Email is required" });
+                }
+
+                // Fetch tasks for the given email (assuming you have a "tasksCollection" or model)
+                const tasks = await tasksCollection.find({ email }).toArray();
+
+                if (tasks.length === 0) {
+                    return res.status(404).json({ message: "No tasks found for this email" });
+                }
+
+                // Send back the tasks in response
                 res.status(200).json(tasks);
             } catch (error) {
+                console.error("Error fetching tasks:", error);
                 res.status(500).json({ error: "❌ Error fetching tasks" });
             }
         });
+
 
         // 📌 4️⃣ Get a Single Task by ID
         app.get("/tasks/:id", async (req, res) => {
@@ -106,7 +120,7 @@ async function run() {
                 res.status(500).json({ error: "❌ Error updating task" });
             }
         });
-        
+
 
         // 📌 6️⃣ Delete a Task
         app.delete("/tasks/:id", async (req, res) => {
@@ -125,7 +139,7 @@ async function run() {
     } catch (error) {
         console.error("❌ Error connecting to MongoDB", error);
     }
-} 
+}
 
 // 📌 Base Route
 app.get('/', (req, res) => {
